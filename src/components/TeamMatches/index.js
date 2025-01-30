@@ -1,10 +1,11 @@
+// Write your code here
 import {Component} from 'react'
 import Loader from 'react-loader-spinner'
-import {withRouter} from 'react-router-dom'
-import MatchStatistics from '../MatchStatistics' // Importing MatchStatistics Component
+import {Link} from 'react-router-dom'
 
 import LatestMatch from '../LatestMatch'
 import MatchCard from '../MatchCard'
+import PieChart from '../PieChart'
 
 import './index.css'
 
@@ -17,6 +18,7 @@ class TeamMatches extends Component {
   }
 
   componentDidMount() {
+    // FIX12: The method to get data should be called to get data from API
     this.getTeamMatches()
   }
 
@@ -48,15 +50,32 @@ class TeamMatches extends Component {
         this.getFormattedData(eachMatch),
       ),
     }
+    // FIX13: The state value of isLoading should be set to false to display the response
     this.setState({teamMatchesData: formattedData, isLoading: false})
   }
+
+  getNoOfMatches = value => {
+    const {teamMatchesData} = this.state
+    const {latestMatch, recentMatches} = teamMatchesData
+    const currentMatch = value === latestMatch.matchStatus ? 1 : 0
+    const result =
+      recentMatches.filter(match => match.matchStatus === value).length +
+      currentMatch
+    return result
+  }
+
+  generatePieChartData = () => [
+    {name: 'Won', value: this.getNoOfMatches('Won')},
+    {name: 'Lost', value: this.getNoOfMatches('Lost')},
+    {name: 'Drawn', value: this.getNoOfMatches('Drawn')},
+  ]
 
   renderRecentMatchesList = () => {
     const {teamMatchesData} = this.state
     const {recentMatches} = teamMatchesData
 
     return (
-      <ul className="recent-matches-list">
+      <ul className="recent-matches-list mb-0">
         {recentMatches.map(recentMatch => (
           <MatchCard matchDetails={recentMatch} key={recentMatch.id} />
         ))}
@@ -66,20 +85,20 @@ class TeamMatches extends Component {
 
   renderTeamMatches = () => {
     const {teamMatchesData} = this.state
-    const {teamBannerURL, latestMatch, recentMatches} = teamMatchesData
-
-    const stats = {
-      won: recentMatches.filter(match => match.result === 'Win').length,
-      lost: recentMatches.filter(match => match.result === 'Lose').length,
-      drawn: recentMatches.filter(match => match.result === 'Draw').length,
-    }
+    const {teamBannerURL, latestMatch} = teamMatchesData
 
     return (
       <div className="responsive-container">
         <img src={teamBannerURL} alt="team banner" className="team-banner" />
         <LatestMatch latestMatchData={latestMatch} />
-        <MatchStatistics stats={stats} />
+        <h1 className="latest-match-heading mt-3">Team Statistics</h1>
+        <PieChart data={this.generatePieChartData()} />
         {this.renderRecentMatchesList()}
+        <Link to="/">
+          <button type="button" className="btn btn-outline-info mb-2">
+            Back
+          </button>
+        </Link>
       </div>
     )
   }
@@ -117,24 +136,16 @@ class TeamMatches extends Component {
     }
   }
 
-  handleBackClick = () => {
-    const {history} = this.props
-    history.push('/')
-  }
-
   render() {
     const {isLoading} = this.state
     const className = `team-matches-container ${this.getRouteClassName()}`
 
     return (
       <div className={className}>
-        <button className="back-button" onClick={this.handleBackClick}>
-          Back
-        </button>
         {isLoading ? this.renderLoader() : this.renderTeamMatches()}
       </div>
     )
   }
 }
 
-export default withRouter(TeamMatches)
+export default TeamMatches
