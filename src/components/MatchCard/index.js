@@ -1,7 +1,6 @@
 // Write your code here
 import {Component} from 'react'
 
-// Write your code here
 import './index.css'
 
 const MatchCard = props => {
