@@ -1,4 +1,3 @@
-// eslint-disable-next-line
 import {
   PieChart as PieChartComponent,
   Pie,
